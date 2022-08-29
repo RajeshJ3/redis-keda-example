@@ -1,0 +1,38 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledJob
+metadata:
+  name: invoice
+spec:
+  jobTargetRef:
+    template:
+      spec:
+        containers:
+          - name: invoice
+            image: rajeshj3/redis_invoice_service:latest
+            envFrom:
+              - secretRef:
+                  name: cred.env
+        restartPolicy: Never
+    backoffLimit: 4
+  pollingInterval: 1
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  triggers:
+    - type: redis
+      metadata:
+        address: 127.0.0.1:6379 # Format must be host:port
+        usernameFromEnv: "" # optional
+        passwordFromEnv: ""
+        listName: invoice # Required
+        listLength: "1" # Required
+        enableTLS: "false" # optional
+
+# NOTE:
+
+# - create "cred.env" env-file like this:
+# $ kubectl create secret generic cred.env --from-env-file .env
+# $ kubectl delete secret cred.env
+
+# - apply scaled-job like this:
+# $ kubectl apply -f deploy/service.yaml
+# $ kubectl delete scaledjob invoice

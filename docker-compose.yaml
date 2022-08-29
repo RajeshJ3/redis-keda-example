@@ -1,0 +1,8 @@
+version: '3'
+
+services:
+  invoice_service:
+    build: .
+    container_name: invoice_service
+    env_file:
+      - .env
